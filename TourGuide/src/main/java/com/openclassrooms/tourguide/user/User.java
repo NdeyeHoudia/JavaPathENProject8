@@ -100,4 +100,7 @@ public class User {
 		return tripDeals;
 	}
 
+	public void setUserRewards(List<UserReward> userRewards) {
+		this.userRewards = userRewards;
+	}
 }
