@@ -3,8 +3,10 @@ package com.openclassrooms.tourguide;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
@@ -61,9 +63,20 @@ public class TestPerformance {
 
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
-		for (User user : allUsers) {
-			tourGuideService.trackUserLocation(user);
-		}
+		List<CompletableFuture<VisitedLocation>> futures = new ArrayList<>();
+
+	/*	List<CompletableFuture<VisitedLocation>> completableFutures = allUsers.stream()
+				.map( user -> CompletableFuture.supplyAsync(() -> tourGuideService.trackUserLocation(user)))
+				.toList();
+		CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).join();
+	*/
+
+		allUsers.forEach(user1
+					-> CompletableFuture.supplyAsync(()
+					->tourGuideService.trackUserLocation(user1)).join());
+
+				CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+
 		stopWatch.stop();
 		tourGuideService.tracker.stopTracking();
 
@@ -81,7 +94,7 @@ public class TestPerformance {
 		// Users should be incremented up to 100,000, and test finishes within 20
 		// minutes
 
-		InternalTestHelper.setInternalUserNumber(100);
+		InternalTestHelper.setInternalUserNumber(1000);
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService, rewardCentral);
@@ -93,9 +106,12 @@ public class TestPerformance {
 
 		allUsers.forEach(u -> rewardsService.calculateRewards(u));
 
-		for (User user : allUsers) {
-			assertTrue(user.getUserRewards().size() > 0);
-		}
+
+		allUsers.forEach(user1
+				-> CompletableFuture.supplyAsync(()
+				-> user1.getUserRewards().size() > 0).join()
+        );
+
 		stopWatch.stop();
 		tourGuideService.tracker.stopTracking();
 

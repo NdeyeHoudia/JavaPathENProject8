@@ -58,20 +58,26 @@ public class TourGuideService {
 
 
 	public List<UserReward>  getUserRewards(User user) {
-		List<User> users = getAllUsers();
-		List<UserReward> userRewards = user.getUserRewards();
-		List<UserReward> userRewardList = new ArrayList<>();
-		final int[] cpt = {0};
+	List<User> users = getAllUsers();
+	List<UserReward> userRewardList =  new ArrayList<>();
+			/*List<UserReward> userRewards = users.stream().map(userReward ->
+				new UserReward(
+						user.getVisitedLocations(),
+						userReward
+					)).toList();
+		user.setUserRewards(userRewards);
+		System.out.println(userRewards);
+*/
 
 		ExecutorService executorService = Executors.newFixedThreadPool(4);
 		executorService.execute(() -> {
+
 			for (int i=0; i< users.size(); i++) {
 				if (users.get(i).getUserRewards() == user.getUserRewards()) {
 					userRewardList.add(user.getUserRewards().get(i));
-					cpt[0] = i;
-
 					break;
 				}
+				System.out.println(userRewardList);
 			}
 			try {
 				executorService.awaitTermination(5, TimeUnit.SECONDS);
@@ -79,25 +85,6 @@ public class TourGuideService {
 				throw new RuntimeException(e);
 			}
 		});
-			//UserReward userReward1 = new UserReward();
-			//userReward1.setRewardPoints(cpt[0]);
-			//userRewards.set(cpt[0], userReward1);
-			executorService.shutdown();
-
-		/*for(User userReward : users) {
-			executorService.execute(() -> {
-				if(userList1.contains(userReward)){
-					userList1.add(userReward);
-				//	userRewards.addAll(userList1);
-				}
-				executorService.shutdown();
-				try {
-					executorService.awaitTermination(5, TimeUnit.SECONDS);
-				} catch (InterruptedException e) {
-					throw new RuntimeException(e);
-				}
-			});
-		}*/
 		return userRewardList;
 	}
 
@@ -173,9 +160,9 @@ public class TourGuideService {
 	}
 
 	/**********************************************************************************
-	 * 
+	 *
 	 * Methods Below: For Internal Testing
-	 * 
+	 *
 	 **********************************************************************************/
 	private static final String tripPricerApiKey = "test-server-api-key";
 	// Database connection will be used for external users, but for testing purposes

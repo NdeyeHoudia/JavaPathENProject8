@@ -69,16 +69,16 @@ public class RewardsService {
 		List<Attraction> attractions = gpsUtil.getAttractions();
 
 		for(VisitedLocation visitedLocation : userLocations) {
-			ExecutorService executorService = Executors.newFixedThreadPool(4);
-			executorService.execute(() -> {
-				for (Attraction attraction : attractions) {
-					if (Arrays.stream(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).toArray()).findAny().isEmpty()) {
-						if (nearAttraction(visitedLocation, attraction)) {
-							user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
-						}
+				ExecutorService executorService = Executors.newFixedThreadPool(4);
+				executorService.execute(() -> {
+			for (Attraction attraction : attractions) {
+				if (Arrays.stream(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).toArray()).findAny().isEmpty()) {
+					if (nearAttraction(visitedLocation, attraction)) {
+						user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
 					}
-					executorService.shutdown();
-					try {
+				}
+				executorService.shutdown();
+				try {
 						executorService.awaitTermination(5, TimeUnit.SECONDS);
 					} catch (InterruptedException e) {
 						throw new RuntimeException(e);
