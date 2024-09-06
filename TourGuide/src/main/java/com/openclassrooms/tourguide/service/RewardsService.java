@@ -1,13 +1,8 @@
 package com.openclassrooms.tourguide.service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import org.springframework.stereotype.Service;
 
@@ -64,7 +59,22 @@ public class RewardsService {
 		}
 	}
 
-	public void calculateRewards(User user) {
+	public CompletableFuture<Void> calculateRewards(User user){
+		return CompletableFuture.runAsync(() ->{
+			List<Attraction> attractions = gpsUtil.getAttractions();
+			List<VisitedLocation> userLocations = new CopyOnWriteArrayList<>(user.getVisitedLocations());
+			for(VisitedLocation visitedLocation : userLocations){
+				List<Attraction> nearAttractionFirstTime = attractions.stream()
+						.filter(a ->
+								(nearAttraction(visitedLocation,a))
+								&& (user.getUserRewards().stream()
+										.anyMatch(r -> r.attraction.attractionName.equals(a.attractionName))))
+						.toList();
+				nearAttractionFirstTime.forEach(a -> user.addUserReward(new UserReward(visitedLocation, a, getRewardPoints(a,user))));
+			}
+		}, Executors.newSingleThreadExecutor());
+	}
+	/*public CompletableFuture<Void> calculateRewards(User user) {
 		List<VisitedLocation> userLocations = user.getVisitedLocations();
 		List<Attraction> attractions = gpsUtil.getAttractions();
 
@@ -87,7 +97,7 @@ public class RewardsService {
 			});
 			}
 	}
-	
+	*/
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
 		return getDistance(attraction, location) > attractionProximityRange ? false : true;
 	}

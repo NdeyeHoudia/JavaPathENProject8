@@ -1,6 +1,7 @@
 package com.openclassrooms.tourguide;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import com.openclassrooms.tourguide.dto.AttractionDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +30,11 @@ public class TourGuideController {
     }
     
     @RequestMapping("/getLocation") 
-    public VisitedLocation getLocation(@RequestParam String userName) {
+    public VisitedLocation getLocation(@RequestParam String userName) throws ExecutionException, InterruptedException {
     	return tourGuideService.getUserLocation(getUser(userName));
     }
     @RequestMapping("/getNearbyAttractions") 
-    public List<AttractionDto> getNearbyAttractions(@RequestParam String userName) {
+    public List<AttractionDto> getNearbyAttractions(@RequestParam String userName) throws ExecutionException, InterruptedException {
     	VisitedLocation visitedLocation = tourGuideService.getUserLocation(getUser(userName));
     	return tourGuideService.getNearByAttractions(visitedLocation);
     }

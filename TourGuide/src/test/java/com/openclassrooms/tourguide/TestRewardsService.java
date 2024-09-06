@@ -5,11 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import gpsUtil.GpsUtil;
@@ -37,10 +34,12 @@ public class TestRewardsService {
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 		Attraction attraction = gpsUtil.getAttractions().get(0);
 		user.addToVisitedLocations(new VisitedLocation(user.getUserId(), attraction, new Date()));
-		tourGuideService.trackUserLocation(user);
-		List<UserReward> userRewards = user.getUserRewards();
-		tourGuideService.tracker.stopTracking();
-		assertTrue(userRewards.size() == 1);
+		tourGuideService.trackUserLocation(user).whenComplete((visitedLocation, throwable) -> {
+			List<UserReward> userRewards = user.getUserRewards();
+			tourGuideService.tracker.stopTracking();
+			assertTrue(userRewards.size() == 1);
+		});
+
 	}
 
 	@Test

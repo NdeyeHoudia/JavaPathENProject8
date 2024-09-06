@@ -6,13 +6,10 @@ import com.openclassrooms.tourguide.tracker.Tracker;
 import com.openclassrooms.tourguide.user.User;
 import com.openclassrooms.tourguide.user.UserReward;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -56,42 +53,13 @@ public class TourGuideService {
 		addShutDownHook();
 	}
 
-
-	public List<UserReward>  getUserRewards(User user) {
-	List<User> users = getAllUsers();
-	List<UserReward> userRewardList =  new ArrayList<>();
-			/*List<UserReward> userRewards = users.stream().map(userReward ->
-				new UserReward(
-						user.getVisitedLocations(),
-						userReward
-					)).toList();
-		user.setUserRewards(userRewards);
-		System.out.println(userRewards);
-*/
-
-		ExecutorService executorService = Executors.newFixedThreadPool(4);
-		executorService.execute(() -> {
-
-			for (int i=0; i< users.size(); i++) {
-				if (users.get(i).getUserRewards() == user.getUserRewards()) {
-					userRewardList.add(user.getUserRewards().get(i));
-					break;
-				}
-				System.out.println(userRewardList);
-			}
-			try {
-				executorService.awaitTermination(5, TimeUnit.SECONDS);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		});
-		return userRewardList;
+	public List<UserReward> getUserRewards(User user) {
+		return user.getUserRewards();
 	}
 
-
-	public VisitedLocation getUserLocation(User user) {
+	public VisitedLocation getUserLocation(User user) throws ExecutionException, InterruptedException {
 		VisitedLocation visitedLocation = (user.getVisitedLocations().size() > 0) ? user.getLastVisitedLocation()
-				: trackUserLocation(user);
+				: trackUserLocation(user).get();
 		return visitedLocation;
 	}
 
@@ -118,13 +86,29 @@ public class TourGuideService {
 		return providers;
 	}
 
-	public VisitedLocation trackUserLocation(User user) {
+	public CompletableFuture<VisitedLocation> trackUserLocation(User user) {
+		return CompletableFuture.supplyAsync(()->{
+			VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
+			user.addToVisitedLocations(visitedLocation);
+			rewardsService.calculateRewards(user);
+			return visitedLocation;
+		}, Executors.newSingleThreadExecutor());
+	}
+	/*public CompletableFuture<VisitedLocation>  trackUserLocation(User user) {
+		return CompletableFuture.supplyAsync(()->{
+			VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
+			user.addToVisitedLocations(visitedLocation);
+			rewardsService.calculateRewards(user);
+			return visitedLocation;
+		}, Executors.newSingleThreadExecutor());
+	}*/
+	/*public VisitedLocation trackUserLocation(User user) {
 		VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
 		user.addToVisitedLocations(visitedLocation);
 		rewardsService.calculateRewards(user);
 		return visitedLocation;
 	}
-
+*/
 	public List<AttractionDto> getNearByAttractions(VisitedLocation visitedLocation) {
 
 		List<Attraction> attractions = gpsUtil.getAttractions();
