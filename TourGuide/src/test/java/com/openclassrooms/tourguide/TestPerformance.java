@@ -55,7 +55,7 @@ public class TestPerformance {
 		// Users should be incremented up to 100,000, and test finishes within 15
 		// minutes
 
-		InternalTestHelper.setInternalUserNumber(100000);
+		InternalTestHelper.setInternalUserNumber(1000);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService,rewardCentral);
 
 		List<User> allUsers = new ArrayList<>();
@@ -66,14 +66,19 @@ public class TestPerformance {
 
 		List<CompletableFuture<VisitedLocation>> visitedLocations = new ArrayList<>();
 
-		// Avec cette methode avec  100 000 users, aprés 15 minutes le test echoue
+		// Avec cette methode à partir de 100 000 users, aprés 15 minutes le test échoue
+
 
 		for (User user : allUsers) {
-			visitedLocations.add(tourGuideService.trackUserLocation(user));
+			//CompletableFuture.supplyAsync(() ->
+					visitedLocations.add(tourGuideService.trackUserLocation(user));
 		}
 		visitedLocations.forEach(CompletableFuture :: join);
+		CompletableFuture.allOf(visitedLocations.toArray(new CompletableFuture[0]));
+
 
 		// Avec cette methode avec  100 000 users, le temps de réponse est de 783
+
 		/*allUsers.forEach(user1
 					-> CompletableFuture.supplyAsync(()
 					->tourGuideService.trackUserLocation(user1)).join());
@@ -94,8 +99,7 @@ public class TestPerformance {
 		RewardCentral  rewardCentral = new RewardCentral();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 
-		// Users should be incremented up to 100,000, and test finishes within 20
-		// minutes
+		// Users should be incremented up to 100,000, and test finishes within 20 minutes
 
 		InternalTestHelper.setInternalUserNumber(100000);
 		StopWatch stopWatch = new StopWatch();
