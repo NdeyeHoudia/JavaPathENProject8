@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 
 import com.openclassrooms.tourguide.service.TourGuideService;
@@ -52,6 +51,5 @@ public class TourGuideController {
     private User getUser(String userName) {
     	return tourGuideService.getUser(userName);
     }
-   
 
 }
