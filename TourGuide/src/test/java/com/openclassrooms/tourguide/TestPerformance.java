@@ -103,7 +103,7 @@ public class TestPerformance {
 
 		allUsers.forEach(user1
 				-> CompletableFuture.supplyAsync(()
-				-> !user1.getUserRewards().isEmpty()).join()
+				-> user1.getUserRewards().isEmpty()).join()
         );
 
 		stopWatch.stop();
