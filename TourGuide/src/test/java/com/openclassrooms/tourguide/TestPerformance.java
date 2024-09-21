@@ -103,7 +103,6 @@ public class TestPerformance {
 
 		allUsers.forEach(u -> rewardsService.calculateRewards(u));
 
-
 		allUsers.forEach(user1
 				-> CompletableFuture.supplyAsync(()
 				-> user1.getUserRewards().isEmpty()).join()
